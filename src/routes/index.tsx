@@ -1,26 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { MenuApp } from "@/components/MenuApp";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Ideal Kitchen — Pure Veg South Indian Menu" },
+      {
+        name: "description",
+        content:
+          "Scan, browse and order from Ideal Kitchen's pure vegetarian South Indian menu — dosas, idlies, tiffins, kids specials and combos.",
+      },
+      { property: "og:title", content: "Ideal Kitchen — Pure Veg Menu" },
+      {
+        property: "og:description",
+        content:
+          "Authentic South Indian, freshly made. Browse our full QR menu of dosas, idlies, tiffins and more.",
+      },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
 function Index() {
-  return <PlaceholderIndex />;
+  return <MenuApp />;
 }
