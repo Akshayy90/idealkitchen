@@ -3,8 +3,19 @@ import { useEffect, useRef, useState } from "react";
 import { Leaf, MapPin, Phone, Clock, ChefHat, Sparkles, UtensilsCrossed } from "lucide-react";
 import { menu } from "@/data/menu";
 import { MenuItemCard } from "@/components/MenuItemCard";
+import { CartProvider } from "@/hooks/useCart";
+import { CartWidget } from "@/components/CartWidget";
 
 export function MenuApp() {
+  return (
+    <CartProvider>
+      <MenuAppInner />
+      <CartWidget />
+    </CartProvider>
+  );
+}
+
+function MenuAppInner() {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
