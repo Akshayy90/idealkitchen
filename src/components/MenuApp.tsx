@@ -3,6 +3,19 @@ import { useEffect, useRef, useState } from "react";
 import { Leaf, MapPin, Phone, Clock, ChefHat, Sparkles, UtensilsCrossed } from "lucide-react";
 import { menu } from "@/data/menu";
 import { MenuItemCard } from "@/components/MenuItemCard";
+import { CartProvider } from "@/hooks/useCart";
+import { CartWidget } from "@/components/CartWidget";
+
+export function MenuApp() {
+  return (
+    <CartProvider>
+      <MenuAppInner />
+      <CartWidget />
+    </CartProvider>
+  );
+}
+
+function MenuAppInner() {
 
 export function MenuApp() {
   const heroRef = useRef<HTMLDivElement>(null);
