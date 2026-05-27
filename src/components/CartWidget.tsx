@@ -266,6 +266,9 @@ function CounterView({
         <p className="mt-4 text-center text-[11px] text-muted-foreground">
           Demo order · Saved on this device so you can come back to it.
         </p>
+        <p className="mt-2 text-center text-[10px] text-muted-foreground/70">
+          This is an estimated bill without GST — the final amount at the counter may vary slightly.
+        </p>
       </div>
 
       <div className="flex gap-2 border-t bg-card/60 px-5 py-4 backdrop-blur">
