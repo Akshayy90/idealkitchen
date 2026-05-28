@@ -1,12 +1,21 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Leaf, Plus, Minus } from "lucide-react";
+import { Leaf, Plus, Minus, Info } from "lucide-react";
 import type { MenuItem } from "@/data/menu";
 import { useCart } from "@/hooks/useCart";
+import { DishBadges, SpiceMeter } from "@/components/DishBadges";
 
 const exts = ["jpg", "jpeg", "png", "webp"];
 
-export function MenuItemCard({ item, index }: { item: MenuItem; index: number }) {
+export function MenuItemCard({
+  item,
+  index,
+  onOpen,
+}: {
+  item: MenuItem;
+  index: number;
+  onOpen?: (item: MenuItem) => void;
+}) {
   const [extIdx, setExtIdx] = useState(0);
   const [failed, setFailed] = useState(false);
   const src = `/menu-images/${item.slug}.${exts[extIdx]}`;
@@ -19,6 +28,7 @@ export function MenuItemCard({ item, index }: { item: MenuItem; index: number })
 
   const canOrder = item.price !== undefined;
   const hasGhee = item.priceGhee !== undefined;
+  const open = () => onOpen?.(item);
 
   return (
     <motion.article
@@ -29,7 +39,12 @@ export function MenuItemCard({ item, index }: { item: MenuItem; index: number })
       whileHover={{ y: -6 }}
       className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card shadow-soft transition-shadow hover:shadow-glow"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+      <button
+        type="button"
+        onClick={open}
+        className="relative aspect-[4/3] w-full overflow-hidden bg-muted text-left"
+        aria-label={`View details for ${item.name}`}
+      >
         {!failed ? (
           <img
             src={src}
@@ -55,13 +70,32 @@ export function MenuItemCard({ item, index }: { item: MenuItem; index: number })
           </span>
           PURE VEG
         </span>
-      </div>
+        {item.chefPick && (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-gradient-hero px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-primary-foreground shadow-soft">
+            ★ Chef's Pick
+          </span>
+        )}
+        <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-1 text-[10px] font-semibold text-foreground opacity-0 shadow-soft backdrop-blur transition-opacity group-hover:opacity-100">
+          <Info className="h-3 w-3" /> Details
+        </span>
+      </button>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-semibold leading-tight text-foreground sm:text-lg">
-            {item.name}
-          </h3>
+          <button
+            type="button"
+            onClick={open}
+            className="text-left"
+          >
+            <h3 className="text-base font-semibold leading-tight text-foreground transition-colors hover:text-primary sm:text-lg">
+              {item.name}
+            </h3>
+            {item.description && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {item.description}
+              </p>
+            )}
+          </button>
           <div className="shrink-0 text-right">
             {item.price !== undefined && (
               <div className="text-base font-bold text-primary-deep sm:text-lg">
@@ -83,6 +117,13 @@ export function MenuItemCard({ item, index }: { item: MenuItem; index: number })
             )}
           </div>
         </div>
+
+        {(item.badges?.length || item.spice) && (
+          <div className="flex flex-wrap items-center gap-2">
+            <DishBadges badges={item.badges} max={3} />
+            <SpiceMeter level={item.spice} />
+          </div>
+        )}
 
         {canOrder && (
           <div className="mt-auto flex flex-wrap gap-2 pt-1">
