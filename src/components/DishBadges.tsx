@@ -31,7 +31,7 @@ export function DishBadges({
 }
 
 export function SpiceMeter({ level }: { level?: 0 | 1 | 2 | 3 }) {
-  if (!level || level === 0) return null;
+  if (!level) return null;
   return (
     <span
       className="inline-flex items-center gap-0.5"
