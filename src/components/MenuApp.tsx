@@ -237,45 +237,74 @@ function MenuAppInner() {
         </div>
       </div>
 
-      {/* Menu sections */}
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
-        {menu.map((category) => (
-          <section key={category.id} id={category.id} className="scroll-mt-32 py-10 first:pt-4">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5 }}
-              className="mb-8 flex flex-wrap items-end justify-between gap-4"
-            >
-              <div className="max-w-xl">
-                {category.badge && (
-                  <span className="inline-flex items-center rounded-full bg-secondary/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary">
-                    {category.badge}
-                  </span>
-                )}
-                <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-                  {category.title}
-                </h2>
-                {category.subtitle && (
-                  <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-                    {category.subtitle}
-                  </p>
-                )}
-              </div>
-              <div className="hidden h-px flex-1 bg-gradient-to-r from-border to-transparent sm:block" />
-              <div className="text-xs font-medium text-muted-foreground">
-                {category.items.length} item{category.items.length !== 1 ? "s" : ""}
-              </div>
-            </motion.div>
+      {/* Chef's Pick Spotlight */}
+      <ChefsPickSpotlight onOpenItem={openItem} />
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {category.items.map((item, i) => (
-                <MenuItemCard key={item.slug} item={item} index={i} />
-              ))}
-            </div>
-          </section>
-        ))}
+      {/* Smart search + filters */}
+      <SmartSearch
+        query={query}
+        setQuery={setQuery}
+        active={activeFilters}
+        toggle={toggleFilter}
+        clear={clearFilters}
+        resultCount={resultCount}
+      />
+
+      {/* Menu sections */}
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+        {filteredMenu.length === 0 ? (
+          <div className="mx-auto mt-6 flex max-w-md flex-col items-center gap-3 rounded-3xl border border-dashed bg-card p-10 text-center">
+            <SearchX className="h-10 w-10 text-muted-foreground" />
+            <div className="text-lg font-bold">No dishes match</div>
+            <p className="text-sm text-muted-foreground">
+              Try a different keyword or clear the filters to see the full menu.
+            </p>
+            <button
+              onClick={clearFilters}
+              className="mt-2 rounded-full bg-gradient-hero px-4 py-2 text-xs font-semibold text-primary-foreground shadow-soft"
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          filteredMenu.map((category) => (
+            <section key={category.id} id={category.id} className="scroll-mt-32 py-10 first:pt-4">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5 }}
+                className="mb-8 flex flex-wrap items-end justify-between gap-4"
+              >
+                <div className="max-w-xl">
+                  {category.badge && (
+                    <span className="inline-flex items-center rounded-full bg-secondary/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary">
+                      {category.badge}
+                    </span>
+                  )}
+                  <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+                    {category.title}
+                  </h2>
+                  {category.subtitle && (
+                    <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+                      {category.subtitle}
+                    </p>
+                  )}
+                </div>
+                <div className="hidden h-px flex-1 bg-gradient-to-r from-border to-transparent sm:block" />
+                <div className="text-xs font-medium text-muted-foreground">
+                  {category.items.length} item{category.items.length !== 1 ? "s" : ""}
+                </div>
+              </motion.div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {category.items.map((item, i) => (
+                  <MenuItemCard key={item.slug} item={item} index={i} onOpen={openItem} />
+                ))}
+              </div>
+            </section>
+          ))
+        )}
 
         {/* Notice */}
         <motion.div
