@@ -25,6 +25,39 @@ function MenuAppInner() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   const [activeId, setActiveId] = useState(menu[0].id);
+  const [query, setQuery] = useState("");
+  const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
+  const [detailItem, setDetailItem] = useState<MenuItem | null>(null);
+
+  const toggleFilter = (k: FilterKey) =>
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  const clearFilters = () => {
+    setActiveFilters(new Set());
+    setQuery("");
+  };
+
+  const filteredMenu = useMemo(() => {
+    const hasAny = query.trim().length > 0 || activeFilters.size > 0;
+    if (!hasAny) return menu;
+    return menu
+      .map((c) => ({
+        ...c,
+        items: c.items.filter((i) => matchesFilters(i, query, activeFilters)),
+      }))
+      .filter((c) => c.items.length > 0);
+  }, [query, activeFilters]);
+
+  const resultCount = useMemo(
+    () => filteredMenu.reduce((sum, c) => sum + c.items.length, 0),
+    [filteredMenu]
+  );
+
+  const openItem = (item: MenuItem) => setDetailItem(item);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -35,12 +68,12 @@ function MenuAppInner() {
       },
       { rootMargin: "-40% 0px -50% 0px" }
     );
-    menu.forEach((c) => {
+    filteredMenu.forEach((c) => {
       const el = document.getElementById(c.id);
       if (el) obs.observe(el);
     });
     return () => obs.disconnect();
-  }, []);
+  }, [filteredMenu]);
 
   return (
     <div className="min-h-screen">
