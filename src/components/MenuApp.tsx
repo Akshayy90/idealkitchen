@@ -374,6 +374,13 @@ function MenuAppInner() {
           Made with <Leaf className="mx-1 inline h-3 w-3" /> fresh ingredients
         </div>
       </footer>
+
+      <DishDetailDrawer
+        item={detailItem}
+        open={detailItem !== null}
+        onClose={() => setDetailItem(null)}
+        onOpenItem={(it) => setDetailItem(it)}
+      />
     </div>
   );
 }
