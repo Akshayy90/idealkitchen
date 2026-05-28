@@ -1,10 +1,13 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { Leaf, MapPin, Phone, Clock, ChefHat, Sparkles, UtensilsCrossed } from "lucide-react";
-import { menu } from "@/data/menu";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Leaf, MapPin, Phone, Clock, ChefHat, Sparkles, UtensilsCrossed, SearchX } from "lucide-react";
+import { menu, type MenuItem } from "@/data/menu";
 import { MenuItemCard } from "@/components/MenuItemCard";
 import { CartProvider } from "@/hooks/useCart";
 import { CartWidget } from "@/components/CartWidget";
+import { ChefsPickSpotlight } from "@/components/ChefsPickSpotlight";
+import { DishDetailDrawer } from "@/components/DishDetailDrawer";
+import { SmartSearch, matchesFilters, type FilterKey } from "@/components/SmartSearch";
 
 export function MenuApp() {
   return (
@@ -22,6 +25,39 @@ function MenuAppInner() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   const [activeId, setActiveId] = useState(menu[0].id);
+  const [query, setQuery] = useState("");
+  const [activeFilters, setActiveFilters] = useState<Set<FilterKey>>(new Set());
+  const [detailItem, setDetailItem] = useState<MenuItem | null>(null);
+
+  const toggleFilter = (k: FilterKey) =>
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  const clearFilters = () => {
+    setActiveFilters(new Set());
+    setQuery("");
+  };
+
+  const filteredMenu = useMemo(() => {
+    const hasAny = query.trim().length > 0 || activeFilters.size > 0;
+    if (!hasAny) return menu;
+    return menu
+      .map((c) => ({
+        ...c,
+        items: c.items.filter((i) => matchesFilters(i, query, activeFilters)),
+      }))
+      .filter((c) => c.items.length > 0);
+  }, [query, activeFilters]);
+
+  const resultCount = useMemo(
+    () => filteredMenu.reduce((sum, c) => sum + c.items.length, 0),
+    [filteredMenu]
+  );
+
+  const openItem = (item: MenuItem) => setDetailItem(item);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -32,12 +68,12 @@ function MenuAppInner() {
       },
       { rootMargin: "-40% 0px -50% 0px" }
     );
-    menu.forEach((c) => {
+    filteredMenu.forEach((c) => {
       const el = document.getElementById(c.id);
       if (el) obs.observe(el);
     });
     return () => obs.disconnect();
-  }, []);
+  }, [filteredMenu]);
 
   return (
     <div className="min-h-screen">
@@ -201,45 +237,74 @@ function MenuAppInner() {
         </div>
       </div>
 
-      {/* Menu sections */}
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
-        {menu.map((category) => (
-          <section key={category.id} id={category.id} className="scroll-mt-32 py-10 first:pt-4">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5 }}
-              className="mb-8 flex flex-wrap items-end justify-between gap-4"
-            >
-              <div className="max-w-xl">
-                {category.badge && (
-                  <span className="inline-flex items-center rounded-full bg-secondary/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary">
-                    {category.badge}
-                  </span>
-                )}
-                <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-                  {category.title}
-                </h2>
-                {category.subtitle && (
-                  <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-                    {category.subtitle}
-                  </p>
-                )}
-              </div>
-              <div className="hidden h-px flex-1 bg-gradient-to-r from-border to-transparent sm:block" />
-              <div className="text-xs font-medium text-muted-foreground">
-                {category.items.length} item{category.items.length !== 1 ? "s" : ""}
-              </div>
-            </motion.div>
+      {/* Chef's Pick Spotlight */}
+      <ChefsPickSpotlight onOpenItem={openItem} />
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {category.items.map((item, i) => (
-                <MenuItemCard key={item.slug} item={item} index={i} />
-              ))}
-            </div>
-          </section>
-        ))}
+      {/* Smart search + filters */}
+      <SmartSearch
+        query={query}
+        setQuery={setQuery}
+        active={activeFilters}
+        toggle={toggleFilter}
+        clear={clearFilters}
+        resultCount={resultCount}
+      />
+
+      {/* Menu sections */}
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+        {filteredMenu.length === 0 ? (
+          <div className="mx-auto mt-6 flex max-w-md flex-col items-center gap-3 rounded-3xl border border-dashed bg-card p-10 text-center">
+            <SearchX className="h-10 w-10 text-muted-foreground" />
+            <div className="text-lg font-bold">No dishes match</div>
+            <p className="text-sm text-muted-foreground">
+              Try a different keyword or clear the filters to see the full menu.
+            </p>
+            <button
+              onClick={clearFilters}
+              className="mt-2 rounded-full bg-gradient-hero px-4 py-2 text-xs font-semibold text-primary-foreground shadow-soft"
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          filteredMenu.map((category) => (
+            <section key={category.id} id={category.id} className="scroll-mt-32 py-10 first:pt-4">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5 }}
+                className="mb-8 flex flex-wrap items-end justify-between gap-4"
+              >
+                <div className="max-w-xl">
+                  {category.badge && (
+                    <span className="inline-flex items-center rounded-full bg-secondary/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-secondary">
+                      {category.badge}
+                    </span>
+                  )}
+                  <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+                    {category.title}
+                  </h2>
+                  {category.subtitle && (
+                    <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+                      {category.subtitle}
+                    </p>
+                  )}
+                </div>
+                <div className="hidden h-px flex-1 bg-gradient-to-r from-border to-transparent sm:block" />
+                <div className="text-xs font-medium text-muted-foreground">
+                  {category.items.length} item{category.items.length !== 1 ? "s" : ""}
+                </div>
+              </motion.div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {category.items.map((item, i) => (
+                  <MenuItemCard key={item.slug} item={item} index={i} onOpen={openItem} />
+                ))}
+              </div>
+            </section>
+          ))
+        )}
 
         {/* Notice */}
         <motion.div
@@ -309,6 +374,13 @@ function MenuAppInner() {
           Made with <Leaf className="mx-1 inline h-3 w-3" /> fresh ingredients
         </div>
       </footer>
+
+      <DishDetailDrawer
+        item={detailItem}
+        open={detailItem !== null}
+        onClose={() => setDetailItem(null)}
+        onOpenItem={(it) => setDetailItem(it)}
+      />
     </div>
   );
 }
