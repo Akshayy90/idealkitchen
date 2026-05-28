@@ -1,10 +1,13 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { Leaf, MapPin, Phone, Clock, ChefHat, Sparkles, UtensilsCrossed } from "lucide-react";
-import { menu } from "@/data/menu";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Leaf, MapPin, Phone, Clock, ChefHat, Sparkles, UtensilsCrossed, SearchX } from "lucide-react";
+import { menu, type MenuItem } from "@/data/menu";
 import { MenuItemCard } from "@/components/MenuItemCard";
 import { CartProvider } from "@/hooks/useCart";
 import { CartWidget } from "@/components/CartWidget";
+import { ChefsPickSpotlight } from "@/components/ChefsPickSpotlight";
+import { DishDetailDrawer } from "@/components/DishDetailDrawer";
+import { SmartSearch, matchesFilters, type FilterKey } from "@/components/SmartSearch";
 
 export function MenuApp() {
   return (
